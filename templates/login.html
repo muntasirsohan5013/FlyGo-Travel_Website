@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+ <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+  <title>Login - FlyGo </title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename= 'login.css') }}">
+  <style>
+    
+  </style>
+</head>
+<body>
+
+  <!-- Background Animation -->
+  <div class="floating-elements">
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+
+  <nav>
+    <div class="logo">
+      <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+    </div>
+  </nav>
+
+  <!-- Login Form -->
+  <section class="log_in_from" id="main-content">
+    <div id="loginForm" class="fade-in">
+      <div class="form-header">
+        <div class="form-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <h1 class="form-title">Welcome Back</h1>
+        <p class="form-subtitle">Sign in to continue your journey</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="input-group">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" class="middle" placeholder="Username" required name="username">
+        </div>
+
+        <div class="input-group">
+          <i class="fas fa-envelope input-icon"></i>
+          <input type="email" class="middle" placeholder="Email" required name="email" id="loginEmail">
+        </div>
+
+        <div class="input-group">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" class="middle" placeholder="Password" required name="password">
+        </div>
+
+        <button type="submit" id="loginButton">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </form>
+
+      <div class="form-links">
+        <a href="{{ url_for('reset_password') }}">
+          <i class="fas fa-key"></i> Forgot Password?
+        </a>
+        <div class="divider">
+          <span>or</span>
+        </div>
+        <a href="{{ url_for('register') }}">
+          <i class="fas fa-user-plus"></i> Create New Account
+        </a>
+      </div>
+
+      <!-- Flash Messages -->
+      <div class="msg_text"> 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul>
+              {% for category, message in messages %}
+                <li class="flash-{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </section>
+
+  <script>
+  
+
+    // Form interactions
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputs = document.querySelectorAll('.middle');
+      
+      inputs.forEach(input => {
+        // Add focus effect
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+          this.parentElement.classList.remove('focused');
+        });
+
+        // Add input validation styling
+        input.addEventListener('input', function() {
+          if (this.value.length > 0) {
+            this.style.background = 'white';
+          } else {
+            this.style.background = '';
+          }
+        });
+      });
+
+      // Password visibility toggle (optional enhancement)
+      const passwordInput = document.querySelector('input[type="password"]');
+      if (passwordInput) {
+        const passwordGroup = passwordInput.parentElement;
+        const toggleIcon = document.createElement('i');
+        toggleIcon.className = 'fas fa-eye input-icon';
+        toggleIcon.style.left = 'auto';
+        toggleIcon.style.right = '15px';
+        toggleIcon.style.cursor = 'pointer';
+        
+        toggleIcon.addEventListener('click', function() {
+          if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            this.className = 'fas fa-eye-slash input-icon';
+          } else {
+            passwordInput.type = 'password';
+            this.className = 'fas fa-eye input-icon';
+          }
+        });
+        
+        passwordGroup.appendChild(toggleIcon);
+      }
+
+      // Form submission animation
+      const loginForm = document.querySelector('form');
+      loginForm.addEventListener('submit', function(e) {
+        const button = document.getElementById('loginButton');
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+        button.disabled = true;
+        
+        // Re-enable after 3 seconds in case of error
+        setTimeout(() => {
+          button.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+          button.disabled = false;
+        }, 3000);
+      });
+    });
+  </script>
+</body>
+</html>

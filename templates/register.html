@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+   <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+
+  <title>Register - FlyGo </title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename= 'register.css') }}">
+  <style>
+    
+  </style>
+</head>
+<body>
+ 
+  <!-- Background Animation -->
+  <div class="floating-elements">
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+
+  <nav>
+    <div class="logo">
+      <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+    </div>
+  </nav>
+
+  <!-- Register Form -->
+  <section id="registerForm" class="register_form">
+    <form method="POST" action="{{ url_for('register') }}" class="fade-in">
+      <div class="form-header">
+        <div class="form-icon">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h1 class="form-title">Create Account</h1>
+        <p class="form-subtitle">Join our community of travelers</p>
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" id="username" class="middle" placeholder="Username" name="username" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="email" class="middle" placeholder="Email" name="email" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="registerPassword" class="middle" placeholder="Password" name="password" required>
+        <div class="password-strength">
+          <div class="strength-bar" id="passwordStrength"></div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="confirmPassword" class="middle" placeholder="Confirm Password" name="confirmPassword" required>
+      </div>
+
+      <div class="otp-section">
+        <div class="input-group">
+          <i class="fas fa-shield-alt input-icon"></i>
+          <input type="text" id="otp" class="middle" placeholder="Enter OTP" name="otp">
+        </div>
+        <button type="button" id="sendOtpBtn">
+          <i class="fas fa-paper-plane"></i> Send OTP
+        </button>
+      </div>
+
+      <div class="checkbox-container">
+        <input type="checkbox" id="terms" required>
+        <label for="terms" class="terms-label">
+          I agree to the <a href="#">terms and conditions</a>
+        </label>
+      </div>
+
+      <button type="submit" id="registerButton">
+        <i class="fas fa-user-plus"></i> Create Account
+      </button>
+
+      <a href="{{ url_for('login') }}" id="already_have_account">
+        <i class="fas fa-sign-in-alt"></i> Already have an account? Sign in
+      </a>
+    </form>
+  </section>
+
+  <script>
+   
+
+    // OTP functionality
+    document.getElementById('sendOtpBtn').addEventListener('click', function() {
+      const email = document.getElementById('email').value;
+      const button = this;
+
+      if (!email) {
+        alert("Please enter an email to send OTP");
+        return;
+      }
+
+      // Disable button and show loading
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      button.disabled = true;
+
+      // Send AJAX request to the server to send OTP
+      fetch('/send_otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('OTP sent successfully to ' + email);
+          // Start countdown timer
+          startOtpTimer(button);
+        } else {
+          alert('Failed to send OTP. Please try again.');
+          button.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP';
+          button.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        button.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP';
+        button.disabled = false;
+      });
+    });
+
+    function startOtpTimer(button) {
+      let timeLeft = 60;
+      const timer = setInterval(() => {
+        button.innerHTML = `<i class="fas fa-clock"></i> Resend (${timeLeft}s)`;
+        timeLeft--;
+        
+        if (timeLeft < 0) {
+          clearInterval(timer);
+          button.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP';
+          button.disabled = false;
+        }
+      }, 1000);
+    }
+
+    // Password strength indicator
+    document.getElementById('registerPassword').addEventListener('input', function() {
+      const password = this.value;
+      const strengthBar = document.getElementById('passwordStrength');
+      
+      // Reset classes
+      strengthBar.className = 'strength-bar';
+      
+      if (password.length === 0) {
+        strengthBar.style.width = '0%';
+        return;
+      }
+      
+      let strength = 0;
+      
+      // Length check
+      if (password.length >= 8) strength++;
+      
+      // Contains numbers
+      if (/\d/.test(password)) strength++;
+      
+      // Contains special characters
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+      
+      // Contains uppercase and lowercase
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      
+      // Update strength bar
+      if (strength <= 1) {
+        strengthBar.classList.add('strength-weak');
+      } else if (strength <= 3) {
+        strengthBar.classList.add('strength-medium');
+      } else {
+        strengthBar.classList.add('strength-strong');
+      }
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const terms = document.getElementById('terms').checked;
+      
+      if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return;
+      }
+      
+      if (!terms) {
+        e.preventDefault();
+        alert('Please agree to the terms and conditions');
+        return;
+      }
+      
+      // Show loading state
+      const button = document.getElementById('registerButton');
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+      button.disabled = true;
+    });
+
+    // Input focus effects
+    const inputs = document.querySelectorAll('.middle');
+    inputs.forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.classList.add('focused');
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('focused');
+      });
+    });
+  </script>
+</body>
+</html>

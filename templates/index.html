@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" href="{{ url_for('static', filename='img/icon.png') }}" type="image/png">
+    <title>FlyGo | Modern Travel & Flight Booking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+
+</head>
+
+<body>
+
+    <header>
+
+        <nav>
+
+            <!-- Logo -->
+            <div class="logo">
+                <a href="{{ url_for('index') }}">
+                    <span>Fly</span><span class="logo-highlight">Go</span>
+                </a>
+            </div>
+
+            <!-- Links -->
+            <ul class="nav-links">
+
+                <li><a href="{{ url_for('index') }}" class="active">Home</a></li>
+                <li><a href="{{ url_for('about') }}">About</a></li>
+                <li><a href="{{ url_for('destinations') }}">Destinations</a></li>
+                <li><a href="{{ url_for('new_post') }}">Travel Blog</a></li>
+
+                {% if current_user.is_admin %}
+                <li><a href="{{ url_for('post_blog') }}">Create Blog</a></li>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('register') }}">Login / Sign Up</a></li>
+                {% endif %}
+
+            </ul>
+
+            <!-- Hamburger -->
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <section id="hero">
+
+        <!-- Background Video -->
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='video/tur.mp4') }}" type="video/mp4">
+        </video>
+
+        <!-- Overlay -->
+        <div class="hero-overlay"></div>
+
+        <!-- Content -->
+        <div class="hero-content fade-in">
+
+            <h1>
+                Book Your <span class="logo-highlight">Flight</span> & Explore The World
+            </h1>
+
+            <h2>Seamless travel starts here </h2>
+
+            <h3 class="top-text">
+                Search, compare, and book the best flight deals to destinations worldwide.
+                Whether it's business or adventure — we've got your journey covered.
+            </h3>
+
+            <a href="{{ url_for('destinations') }}" class="btn">
+                <i class="fas fa-search"></i> Search Flights
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <div class="typing-container">
+        <span class="typing"></span>
+    </div>
+
+    <section id="about" class="about">
+
+        <div>
+
+            <p class="textp">
+                Plan your next <span class="logo-highlight">adventure</span>
+            </p>
+
+            <h2 class="head-text2">
+                Popular Destinations &nbsp;
+                <a class="btn" href="{{ url_for('new_post') }}">
+                    <i class="fas fa-compass"></i> Explore Deals
+                </a>
+            </h2>
+
+        </div>
+
+        <section class="grid-itm-container">
+
+            <!-- Card 1 -->
+            <div class="container-grid fade-in">
+                <img src="{{ url_for('static', filename='img/nanjing.jpg') }}" class="ing-container" alt="Nanjing">
+                <h3>Nanjing, China</h3>
+                <a href="{{ url_for('new_post') }}" class="btn">
+                    <i class="fas fa-plane"></i> Book Now
+                </a>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="container-grid fade-in">
+                <img src="{{ url_for('static', filename='img/cox-bangladesh.jpg') }}" class="ing-container" alt="Cox's Bazar">
+                <h3>Cox's Bazar, Bangladesh</h3>
+                <a href="{{ url_for('new_post') }}" class="btn">
+                    <i class="fas fa-plane"></i> Book Now
+                </a>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="container-grid fade-in">
+                <img src="{{ url_for('static', filename='img/vancouver.jpg') }}" class="ing-container" alt="Vancouver">
+                <h3>Vancouver, Canada</h3>
+                <a href="{{ url_for('new_post') }}" class="btn">
+                    <i class="fas fa-plane"></i> Book Now
+                </a>
+            </div>
+
+        </section>
+
+    </section>
+
+    <section class="flight-animation-section">
+
+        <div class="flight-container">
+
+            <div class="flight-content">
+
+                <h2 class="flight-title">Book Your Dream Vacation</h2>
+
+                <p class="flight-subtitle">
+                    Easy booking, amazing destinations, unforgettable memories.
+                    Your journey starts with a single click.
+                </p>
+
+                <div class="flight-stats">
+
+                    <div class="stat">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Destinations</div>
+                    </div>
+
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+
+                    <div class="stat">
+                        <div class="stat-number">5★</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+
+                </div>
+
+                <button class="cta-button">Explore Destinations</button>
+
+            </div>
+
+            <div class="animation-wrapper">
+                <dotlottie-wc
+                    src="https://lottie.host/baf6b90f-2a5b-429c-9197-4ef42dc5c60f/MdTABUIaiL.lottie"
+                    style="width:750px;height:400px"
+                    autoplay
+                    loop>
+                </dotlottie-wc>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="promo-section">
+
+        <div class="promo-container">
+
+            <div class="section-header">
+
+                <h2 class="promo-title">
+                    Top Flight & Travel Deals <span class="logo-highlight">2025</span>
+                </h2>
+
+                <p class="promo-subtitle">
+                    Exclusive offers crafted for our premium travelers
+                </p>
+
+            </div>
+
+            <div class="deals-grid">
+
+                <!-- Deal 1 -->
+                <div class="deal-card">
+                    <div class="deal-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="deal-content">
+                        <h3>Up to 40% Off</h3>
+                        <p>Early bird discounts on international flights with flexible booking options</p>
+                    </div>
+                    <span class="deal-badge">Limited Time</span>
+                </div>
+
+                <!-- Deal 2 -->
+                <div class="deal-card">
+                    <div class="deal-icon"><i class="fas fa-suitcase-rolling"></i></div>
+                    <div class="deal-content">
+                        <h3>Free Luggage</h3>
+                        <p>Extra 20kg baggage allowance on selected premium routes worldwide</p>
+                    </div>
+                    <span class="deal-badge">Popular</span>
+                </div>
+
+                <!-- Deal 3 -->
+                <div class="deal-card">
+                    <div class="deal-icon"><i class="fas fa-gift"></i></div>
+                    <div class="deal-content">
+                        <h3>Loyalty Rewards</h3>
+                        <p>Double loyalty points and exclusive member-only benefits</p>
+                    </div>
+                    <span class="deal-badge">Members Only</span>
+                </div>
+
+            </div>
+
+            <div class="promo-cta">
+                <a href="{{ url_for('destinations') }}" class="btn btn-large">
+                    <i class="fas fa-bolt"></i> Explore All Exclusive Deals
+                </a>
+                <p class="cta-note">Limited time offers. Secure your spot today!</p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- Booking Information                                       -->
+    <!-- ========================================================= -->
+    <div class="container">
+
+        <h1 class="container-h1 fade-in">
+            Your Complete Travel & Flight Booking Partner
+        </h1>
+
+        <div class="feture-flex">
+
+            <div class="img-two">
+                <img class="feture-img fade-in" src="{{ url_for('static', filename='img/elsewhere.jpg') }}" alt="">
+                <img class="feture-img fade-in" src="{{ url_for('static', filename='img/mountain.jpg') }}" alt="">
+            </div>
+
+            <div class="feture-flex2">
+
+                <div class="toggle-section fade-in">
+                    <div class="toggle" id="howItWorksToggle">
+                        <i class="fas fa-cogs"></i> How <span class="logo-highlight">Booking</span> Works?
+                    </div>
+                    <div class="content" id="howItWorksContent">
+                        Choose your destination, select your flight, customize your itinerary, and confirm —
+                        all in one place with real-time availability and instant confirmation.
+                    </div>
+                </div>
+
+                <div class="toggle-section fade-in">
+                    <div class="toggle" id="localExpertsToggle">
+                        <i class="fas fa-star"></i> Why <span class="logo-highlight">Book With Us</span>?
+                    </div>
+                    <div class="content" id="localExpertsContent">
+                        Exclusive flight deals, 24/7 customer support, transparent pricing with no hidden fees,
+                        personalized travel plans, and loyalty rewards program.
+                    </div>
+                </div>
+
+                <div class="toggle-section fade-in">
+                    <div class="toggle" id="whatsIncludedToggle">
+                        <i class="fas fa-check-circle"></i> What's <span class="logo-highlight">Included</span>?
+                    </div>
+                    <div class="content" id="whatsIncludedContent">
+                        <i class="fa-solid fa-plane"></i> Flight bookings & management<br>
+                        <i class="fa-solid fa-hotel"></i> Hotel reservations<br>
+                        <i class="fa-solid fa-car"></i> Ground transportation<br>
+                        <i class="fa-solid fa-utensils"></i> Dining recommendations<br>
+                        <i class="fa-solid fa-headset"></i> 24/7 customer support
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- Footer                                                    -->
+    <!-- ========================================================= -->
+    <footer class="footer">
+
+        <div class="container">
+
+            <div class="footer__columns">
+
+                <!-- Developer -->
+                <div class="footer__col">
+                    <h3 class="footer__col-title"><i class="fas fa-user"></i> <span>Developer</span></h3>
+                    <ul class="footer__nav-list">
+                        <li class="footer__nav-item"><span class="footer__nav-link">Mahfuz Muntasir Sohan</span></li>
+                        <li class="footer__nav-item"><span class="footer__nav-link">Nanjing Tech University</span></li>
+                        <li class="footer__nav-item"><span class="footer__nav-link">Computer Science and Technology</span></li>
+                    </ul>
+                </div>
+
+                <!-- Social -->
+                <div class="footer__col">
+                    <h3 class="footer__col-title"><i class="fas fa-share-alt"></i> <span>Social Contact</span></h3>
+                    <ul class="footer__nav-list">
+                        <li><a href="https://www.facebook.com" class="footer__nav-link">Facebook</a></li>
+                        <li><a href="https://www.instagram.com" class="footer__nav-link">Instagram</a></li>
+                        <li><a href="https://github.com" class="footer__nav-link">GitHub</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div class="footer__col">
+                    <h3 class="footer__col-title"><i class="fas fa-envelope"></i> <span>Contact</span></h3>
+                    <ul class="footer__nav-list">
+                        <li>
+                            <a href="mailto:muntasiroshan0@gmail.com" class="footer__nav-link">
+                                muntasirsohan0@gmail.com
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="footer__copyrights">
+                <p>
+                    © 2025 FlyGo — Developed by
+                    <a href="https://github.com" target="_blank">@Mahfuz Muntasir Sohan</a>
+                </p>
+            </div>
+
+        </div>
+
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- JavaScript                                               -->
+    <!-- ========================================================= -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
+
+    <script>
+        /* ---------- Header Scroll ---------- */
+        window.addEventListener("scroll", () => {
+            document.querySelector("header").classList.toggle("scrolled", window.scrollY > 50);
+        });
+
+        /* ---------- Mobile Menu ---------- */
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks  = document.querySelector('.nav-links');
+
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                });
+
+                navLinks.querySelectorAll('a').forEach(a =>
+                    a.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        navLinks.classList.remove('active');
+                    })
+                );
+            }
+
+            /* ---------- Typed.js ---------- */
+            new Typed('.typing', {
+                strings: [
+                    '✈️ Discover amazing flight deals',
+                    '🏝️ Explore exotic destinations',
+                    '🛎️ 24/7 customer support',
+                    '🎯 Personalized travel plans',
+                    '💰 Best price guarantee'
+                ],
+                typeSpeed: 50,
+                backSpeed: 30,
+                backDelay: 2000,
+                startDelay: 500,
+                loop: true
+            });
+
+            /* ---------- Toggle Sections ---------- */
+            document.querySelectorAll('.toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const content = toggle.nextElementSibling;
+                    document.querySelectorAll('.toggle').forEach(t => {
+                        if (t !== toggle) {
+                            t.classList.remove('active');
+                            t.nextElementSibling.classList.remove('show');
+                        }
+                    });
+                    toggle.classList.toggle('active');
+                    content.classList.toggle('show');
+                });
+            });
+        });
+
+        /* ---------- Scroll-Reveal (re-triggers every pass) ---------- */
+        const revealObserver = new IntersectionObserver(
+            (entries, obs) => {
+                entries.forEach(entry => {
+                    const el = entry.target;
+                    if (entry.isIntersecting) {               // scrolled INTO view
+                        el.style.opacity   = '1';
+                        el.style.transform = 'translate(0,0) scale(1)';
+                    } else {                                  // scrolled OUT of view
+                        el.style.opacity   = '0';
+                        el.style.transform = 'translateY(30px) scale(1)';
+                    }
+                    obs.observe(el);   // keep observing
+                });
+            },
+            { threshold: 0.15 }
+        );
+
+        document.querySelectorAll(
+            '.fade-in, .flight-animation-section, .promo-section, .deals-grid, .toggle-section, .footer'
+        ).forEach(el => revealObserver.observe(el));
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+node_modules/
+vendor/
+dist/
+build/
+.next/
+.env
+.env.local
+*.log
+__pycache__/
+venv/
+uploads/
+*.sql
+client_secret*.json
+*.zip

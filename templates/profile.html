@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+    <title>Profile - FlyGo </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'profile.css') }}">
+    <style>
+       
+    </style>
+</head>
+<body>
+    
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('about')}}">About</a></li>
+                <li><a href="{{ url_for('destinations')}}">Destinations</a></li>
+                <li><a href="{{ url_for('new_post') }}">Travel Blog</a></li>
+                {% if current_user.is_admin %}
+                <li><a href="{{ url_for('post_blog') }}">Create Blog</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}" class="active">Profile</a></li>
+                <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('register') }}">LogIn/SignUp</a></li>
+                {% endif %}
+            </ul>
+            
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+     <main class="profile-container" id="main-content">
+        <!-- Profile Header -->
+        <div class="profile-header scroll-reveal">
+            <div class="profile-avatar">
+                {{ current_user.username[0]|upper }}
+            </div>
+            <h1 class="profile-welcome">Welcome Back, <span class="welcome">{{ current_user.username }}</span>!</h1>
+            <p class="profile-subtitle">Manage your account settings, update your preferences, and track your travel journey with us.</p>
+            
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-bookings">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-plane"></i> Total Bookings
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="completed-flights">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-check-circle"></i> Completed Flights
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-refunds">0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-money-bill-wave"></i> Refunds
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-spent">$0</div>
+                    <div class="stat-label">
+                        <i class="fas fa-wallet"></i> Total Spent
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for category, message in messages %}
+                        <div class="flash-{{ category }}">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Travel History Section -->
+        <div class="travel-history scroll-reveal">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3 class="section-title">Your Travel History</h3>
+            </div>
+            
+            <div id="bookings-container">
+                <div class="loading-spinner" id="loading-spinner"></div>
+                <div id="bookings-list"></div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Section (Only for Admins) -->
+{% if current_user.is_admin == 1 %}
+<div class="admin-panel scroll-reveal">
+    <div class="section-header">
+        <div class="section-icon">
+            <i class="fas fa-cogs"></i>
+        </div>
+        <h3 class="section-title">Admin Management Panel</h3>
+    </div>
+    
+    <div class="admin-tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="openAdminTab('pendingRefunds')">
+                <i class="fas fa-money-bill-wave"></i>
+                Pending Refunds
+                <span class="tab-badge" id="pending-refunds-count">0</span>
+            </button>
+            <button class="tab-btn" onclick="openAdminTab('allBookings')">
+                <i class="fas fa-plane"></i>
+                All Bookings
+                <span class="tab-badge" id="all-bookings-count">0</span>
+            </button>
+            <button class="tab-btn" onclick="openAdminTab('userManagement')">
+                <i class="fas fa-users"></i>
+                User Management
+            </button>
+        </div>
+        
+        <!-- Pending Refunds Tab -->
+        <div id="pendingRefunds" class="tab-content active">
+            <div class="admin-section-header">
+                <h4>Pending Refund Requests</h4>
+                <button class="btn-primary" onclick="loadPendingRefunds()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div id="pending-refunds-list" class="admin-cards-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- All Bookings Tab -->
+        <div id="allBookings" class="tab-content">
+            <div class="admin-section-header">
+                <h4>All Bookings Management</h4>
+                <div class="admin-filters">
+                    <select id="booking-filter" onchange="filterBookings()">
+                        <option value="all">All Bookings</option>
+                        <option value="pending_refund">Pending Refund</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button class="btn-primary" onclick="loadAllBookings()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="all-bookings-list" class="admin-cards-container">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- User Management Tab -->
+        <div id="userManagement" class="tab-content">
+            <div class="admin-section-header">
+                <h4>User Management</h4>
+                <button class="btn-primary" onclick="loadUsers()">
+                    <i class="fas fa-sync-alt"></i> Load Users
+                </button>
+            </div>
+            <div id="users-list" class="admin-cards-container">
+                <div class="no-data">
+                    <i class="fas fa-users"></i>
+                    <p>Click "Load Users" to view all registered users</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+     
+        <!-- Profile Forms -->
+        <div class="profile-forms">
+            <!-- Change Username Form -->
+            <div class="form-card scroll-reveal">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <h3 class="form-title">Update Username</h3>
+                </div>
+                <form method="POST" action="{{ url_for('change_username') }}">
+                    <div class="form-group">
+                        <label class="form-label" for="new_username">
+                            <i class="fas fa-user"></i> New Username
+                        </label>
+                        <input type="text" id="new_username" name="new_username" class="form-input" placeholder="Enter your new username" required>
+                    </div>
+                    <button type="submit" class="form-btn">
+                        <i class="fas fa-sync-alt"></i> Update Username
+                    </button>
+                </form>
+            </div>
+
+            <!-- Change Email Form -->
+            <div class="form-card scroll-reveal">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="form-title">Update Email</h3>
+                </div>
+                <form method="POST" action="{{ url_for('change_email') }}">
+                    <div class="form-group">
+                        <label class="form-label" for="new_email">
+                            <i class="fas fa-at"></i> New Email Address
+                        </label>
+                        <input type="email" id="new_email" name="new_email" class="form-input" placeholder="Enter your new email address" required>
+                    </div>
+                    <button type="submit" class="form-btn">
+                        <i class="fas fa-envelope"></i> Update Email
+                    </button>
+                </form>
+            </div>
+
+            <!-- Change Password Form -->
+            <div class="form-card scroll-reveal">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3 class="form-title">Change Password</h3>
+                </div>
+                <form method="POST" action="{{ url_for('change_password') }}">
+                    <div class="form-group">
+                        <label class="form-label" for="current_password">
+                            <i class="fas fa-key"></i> Current Password
+                        </label>
+                        <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter your current password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="new_password">
+                            <i class="fas fa-lock"></i> New Password
+                        </label>
+                        <input type="password" id="new_password" name="new_password" class="form-input" placeholder="Enter your new password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm_new_password">
+                            <i class="fas fa-lock"></i> Confirm New Password
+                        </label>
+                        <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-input" placeholder="Confirm your new password" required>
+                    </div>
+                    <button type="submit" class="form-btn">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+<script>
+    // Header scroll effect
+    window.addEventListener("scroll", function() {
+        const header = document.querySelector("header");
+        if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+        } else {
+            header.classList.remove("scrolled");
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    initializeMobileMenu();
+    initializeScrollAnimations();
+    initializeFormEnhancements();
+    loadBookingHistory();
+    
+    // Auto-load admin data if admin panel exists (user is admin)
+    const adminPanel = document.querySelector('.admin-panel');
+    if (adminPanel) {
+        setTimeout(() => {
+            if (typeof loadPendingRefunds === 'function') {
+                loadPendingRefunds();
+            }
+        }, 1000);
+    }
+});
+
+    // Mobile menu functions
+    function initializeMobileMenu() {
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', function() {
+                this.classList.toggle('active');
+                navLinks.classList.toggle('active');
+                document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Close mobile menu when clicking on a link
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.nav-links') && !e.target.closest('.hamburger') && navLinks.classList.contains('active')) {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+    }
+
+    // Scroll animation functions
+    function initializeScrollAnimations() {
+        const scrollElements = document.querySelectorAll('.scroll-reveal');
+        
+        const elementInView = (el, dividend = 1) => {
+            const elementTop = el.getBoundingClientRect().top;
+            return elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend;
+        };
+
+        const displayScrollElement = (element) => {
+            element.classList.add('revealed');
+        };
+
+        const hideScrollElement = (element) => {
+            if (!element.classList.contains('always-visible')) {
+                element.classList.remove('revealed');
+            }
+        };
+
+        const handleScrollAnimation = () => {
+            scrollElements.forEach((el) => {
+                if (elementInView(el, 1.1)) {
+                    displayScrollElement(el);
+                } else {
+                    hideScrollElement(el);
+                }
+            });
+        };
+
+        // Throttle scroll events for better performance
+        let scrollTimer;
+        window.addEventListener('scroll', () => {
+            if (!scrollTimer) {
+                scrollTimer = setTimeout(() => {
+                    handleScrollAnimation();
+                    scrollTimer = null;
+                }, 10);
+            }
+        });
+
+        // Initial check
+        handleScrollAnimation();
+    }
+
+    // Form enhancement functions
+    function initializeFormEnhancements() {
+        // Form input focus effects
+        const formInputs = document.querySelectorAll('.form-input');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+
+            // Real-time validation for username
+            if (input.id === 'new_username') {
+                input.addEventListener('input', function() {
+                    const charCount = this.value.length;
+                    const maxLength = 20;
+                    
+                    if (charCount > maxLength) {
+                        this.style.borderColor = 'var(--accent)';
+                        this.style.boxShadow = '0 0 0 3px rgba(255, 107, 107, 0.1)';
+                        showInputError(this, `Username must be less than ${maxLength} characters`);
+                    } else {
+                        this.style.borderColor = '';
+                        this.style.boxShadow = '';
+                        clearInputError(this);
+                    }
+                });
+            }
+
+            // Password strength indicator
+            if (input.id === 'new_password') {
+                input.addEventListener('input', function() {
+                    checkPasswordStrength(this.value);
+                });
+            }
+        });
+
+        // Password confirmation validation
+        const passwordForm = document.querySelector('form[action*="change_password"]');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', function(e) {
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_new_password').value;
+                
+                if (newPassword !== confirmPassword) {
+                    e.preventDefault();
+                    showNotification('❌ New password and confirmation do not match! Please try again.', 'error');
+                    return false;
+                }
+
+                if (newPassword.length < 6) {
+                    e.preventDefault();
+                    showNotification('❌ Password must be at least 6 characters long!', 'error');
+                    return false;
+                }
+            });
+        }
+
+        // Form submission loading states
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('.form-btn');
+                if (submitBtn && !submitBtn.disabled) {
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    submitBtn.disabled = true;
+                    
+                    // Re-enable after 8 seconds (in case of error)
+                    setTimeout(() => {
+                        if (submitBtn.disabled) {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                            showNotification('⚠️ Request taking longer than expected. Please check your connection.', 'warning');
+                        }
+                    }, 8000);
+                }
+            });
+        });
+
+        // Form card hover effects
+        const formCards = document.querySelectorAll('.form-card');
+        formCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    }
+
+    // Booking history functions
+    async function loadBookingHistory() {
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const bookingsList = document.getElementById('bookings-list');
+        
+        try {
+            loadingSpinner.style.display = 'block';
+            bookingsList.innerHTML = '';
+            
+            const response = await fetch('/flight/api/booking-history');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                displayBookings(data.bookings);
+                updateStatistics(data.bookings);
+            } else {
+                throw new Error(data.error || 'Failed to load booking history');
+            }
+        } catch (error) {
+            console.error('Error loading booking history:', error);
+            showNoBookings();
+            showNotification('❌ Failed to load booking history. Please try again.', 'error');
+        } finally {
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    function displayBookings(bookings) {
+        const bookingsList = document.getElementById('bookings-list');
+        
+        if (!bookings || bookings.length === 0) {
+            showNoBookings();
+            return;
+        }
+        
+        bookingsList.innerHTML = bookings.map(booking => {
+            const departureInfo = extractRouteInfo(booking.route, 'departure');
+            const arrivalInfo = extractRouteInfo(booking.route, 'arrival');
+            const canRequestRefund = booking.status === 'Confirmed' && !booking.refund_requested;
+            const hasRefund = booking.refund_requested;
+            
+            return `
+                <div class="booking-card scroll-reveal">
+                    <div class="booking-header">
+                        <div class="booking-ref">${escapeHtml(booking.booking_reference)}</div>
+                        <div class="booking-status status-${getStatusClass(booking.status)}">
+                            ${escapeHtml(booking.status)}
+                            ${hasRefund ? ` (Refund ${booking.refund_status || 'Pending'})` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="flight-details">
+                        <div class="flight-route">
+                            <div class="airport-code">${escapeHtml(departureInfo.code)}</div>
+                            <div class="city-name">${escapeHtml(departureInfo.city)}</div>
+                        </div>
+                        
+                        <div class="flight-duration">
+                            <i class="fas fa-plane"></i>
+                            <div>${escapeHtml(booking.departure_time)}</div>
+                            <small>${escapeHtml(booking.departure_date)}</small>
+                        </div>
+                        
+                        <div class="flight-route">
+                            <div class="airport-code">${escapeHtml(arrivalInfo.code)}</div>
+                            <div class="city-name">${escapeHtml(arrivalInfo.city)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flight-info">
+                        <div class="flight-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-plane"></i>
+                                ${escapeHtml(booking.flight_number)}
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-building"></i>
+                                ${escapeHtml(booking.airline)}
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-chair"></i>
+                                ${escapeHtml(booking.travel_class)}
+                            </div>
+                        </div>
+                        <div class="flight-price">
+                            <i class="fas fa-receipt"></i>
+                            $${escapeHtml(booking.total_amount.toString())}
+                        </div>
+                    </div>
+                    
+                    <div class="booking-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            Booked: ${escapeHtml(booking.booking_date)}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-user"></i>
+                            ${escapeHtml(booking.passenger_name || 'Passenger')}
+                        </div>
+                    </div>
+                    
+                    <div class="booking-actions">
+                        <a href="/flight/api/download-invoice/${escapeHtml(booking.booking_reference)}" 
+                           class="action-btn btn-primary"
+                           onclick="trackDownload('${escapeHtml(booking.booking_reference)}')">
+                            <i class="fas fa-download"></i> Download Invoice
+                        </a>
+                        
+                        ${canRequestRefund ? `
+                            <button onclick="requestRefund('${escapeHtml(booking.booking_reference)}')" 
+                                    class="action-btn btn-danger">
+                                <i class="fas fa-money-bill-wave"></i> Request Refund
+                            </button>
+                        ` : ''}
+                        
+                        ${hasRefund ? `
+                            <div class="refund-status">
+                                <i class="fas ${getRefundIcon(booking.refund_status)}"></i>
+                                Refund: ${escapeHtml(booking.refund_status || 'Processing')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Re-initialize scroll animations for new elements
+        setTimeout(initializeScrollAnimations, 100);
+    }
+
+    function updateStatistics(bookings) {
+        const totalBookings = bookings.length;
+        const completedFlights = bookings.filter(b => 
+            b.status === 'Completed' || b.status === 'Confirmed'
+        ).length;
+        const totalRefunds = bookings.filter(b => 
+            b.refund_status === 'Completed'
+        ).length;
+        const totalSpent = bookings.reduce((sum, booking) => 
+            sum + parseFloat(booking.total_amount || 0), 0
+        );
+        
+        // Update DOM elements
+        updateStatElement('total-bookings', totalBookings);
+        updateStatElement('completed-flights', completedFlights);
+        updateStatElement('total-refunds', totalRefunds);
+        updateStatElement('total-spent', `$${totalSpent.toFixed(2)}`);
+        
+        // Add animation to stats
+        animateStatistics();
+    }
+
+    function showNoBookings() {
+        const bookingsList = document.getElementById('bookings-list');
+        bookingsList.innerHTML = `
+            <div class="no-bookings">
+                <i class="fas fa-plane-slash"></i>
+                <h3>No Bookings Yet</h3>
+                <p>Start your travel adventure with FlyGo! Book your first flight and track your journey here.</p>
+                <div class="no-booking-actions">
+                    <a href="/" class="action-btn btn-primary">
+                        <i class="fas fa-search"></i> Search Flights
+                    </a>
+                    <a href="/destinations" class="action-btn btn-secondary">
+                        <i class="fas fa-map-marker-alt"></i> Explore Destinations
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    async function requestRefund(bookingRef) {
+        if (!await showConfirmation(
+            'Request Refund', 
+            'Are you sure you want to request a refund for this booking? This action cannot be undone.',
+            'warning'
+        )) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/flight/api/request-refund/${encodeURIComponent(bookingRef)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('✅ Refund request submitted successfully!', 'success');
+                // Reload bookings after a short delay
+                setTimeout(loadBookingHistory, 1500);
+            } else {
+                throw new Error(data.error || 'Failed to request refund');
+            }
+        } catch (error) {
+            console.error('Error requesting refund:', error);
+            showNotification(`❌ ${error.message}`, 'error');
+        }
+    }
+
+    // Utility functions
+    function extractRouteInfo(route, type) {
+        if (!route) return { code: 'N/A', city: 'Unknown' };
+        
+        try {
+            const parts = route.split('→');
+            if (type === 'departure' && parts[0]) {
+                const text = parts[0].trim();
+                const match = text.match(/(.+?)\s*\(([^)]+)\)/);
+                return {
+                    city: match ? match[1].trim() : text.split(' ')[0] || 'Departure',
+                    code: match ? match[2].trim() : text.split(' ').pop() || 'N/A'
+                };
+            } else if (type === 'arrival' && parts[1]) {
+                const text = parts[1].trim();
+                const match = text.match(/(.+?)\s*\(([^)]+)\)/);
+                return {
+                    city: match ? match[1].trim() : text.split(' ')[0] || 'Arrival',
+                    code: match ? match[2].trim() : text.split(' ').pop() || 'N/A'
+                };
+            }
+        } catch (e) {
+            console.error('Error parsing route:', e);
+        }
+        
+        return { code: 'N/A', city: 'Unknown' };
+    }
+
+    function getStatusClass(status) {
+        const statusMap = {
+            'confirmed': 'confirmed',
+            'completed': 'confirmed',
+            'cancelled': 'cancelled',
+            'pending': 'pending',
+            'refunded': 'cancelled'
+        };
+        return statusMap[status.toLowerCase()] || 'pending';
+    }
+
+    function getRefundIcon(refundStatus) {
+        const iconMap = {
+            'completed': 'fa-check-circle',
+            'pending': 'fa-clock',
+            'rejected': 'fa-times-circle',
+            'processing': 'fa-sync-alt'
+        };
+        return iconMap[refundStatus?.toLowerCase()] || 'fa-clock';
+    }
+
+    function escapeHtml(unsafe) {
+        if (unsafe === null || unsafe === undefined) return '';
+        return unsafe.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function updateStatElement(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    function animateStatistics() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            stat.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                stat.style.transform = 'scale(1)';
+            }, 300);
+        });
+    }
+
+    function showInputError(input, message) {
+        clearInputError(input);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'input-error';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        errorDiv.style.cssText = `
+            color: var(--accent);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        `;
+        input.parentNode.appendChild(errorDiv);
+    }
+
+    function clearInputError(input) {
+        const existingError = input.parentNode.querySelector('.input-error');
+        if (existingError) {
+            existingError.remove();
+        }
+    }
+
+    function checkPasswordStrength(password) {
+        // Simple password strength check
+        const strength = document.getElementById('password-strength');
+        if (!strength) return;
+        
+        let strengthText = '';
+        let strengthClass = '';
+        
+        if (password.length === 0) {
+            strengthText = '';
+        } else if (password.length < 6) {
+            strengthText = 'Weak';
+            strengthClass = 'weak';
+        } else if (password.length < 8) {
+            strengthText = 'Medium';
+            strengthClass = 'medium';
+        } else {
+            strengthText = 'Strong';
+            strengthClass = 'strong';
+        }
+        
+        strength.textContent = strengthText;
+        strength.className = `password-strength ${strengthClass}`;
+    }
+
+    function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.custom-notification');
+        existingNotifications.forEach(notif => notif.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `custom-notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="notification-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--accent)' : 'var(--primary)'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: var(--hover-shadow);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    async function showConfirmation(title, message, type = 'warning') {
+        return new Promise((resolve) => {
+            // Create confirmation modal
+            const modal = document.createElement('div');
+            modal.className = 'confirmation-modal';
+            modal.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>${title}</h3>
+                            <button class="modal-close" onclick="closeModal(false)">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                            <p>${message}</p>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn-secondary" onclick="closeModal(false)">Cancel</button>
+                            <button class="btn-danger" onclick="closeModal(true)">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Store resolve function globally to access in closeModal
+            window.confirmationResolve = resolve;
+        });
+    }
+
+    function closeModal(result) {
+        const modal = document.querySelector('.confirmation-modal');
+        if (modal) {
+            modal.remove();
+        }
+        if (window.confirmationResolve) {
+            window.confirmationResolve(result);
+            window.confirmationResolve = null;
+        }
+    }
+
+    function trackDownload(bookingRef) {
+        // Analytics tracking for downloads
+        console.log(`Invoice downloaded for booking: ${bookingRef}`);
+    }
+
+    // Admin Panel Functions
+    function openAdminTab(tabName, event) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show the selected tab
+        document.getElementById(tabName).classList.add('active');
+        
+        // Add active class to the clicked button
+        event.currentTarget.classList.add('active');
+        
+        // Load data for the selected tab
+        switch(tabName) {
+            case 'pendingRefunds':
+                loadPendingRefunds();
+                break;
+            case 'allBookings':
+                loadAllBookings();
+                break;
+            case 'userManagement':
+                loadUsers();
+                break;
+        }
+    }
+
+    // Load pending refunds
+    async function loadPendingRefunds() {
+        try {
+            const response = await fetch('/flight/api/admin/pending-refunds');
+            const data = await response.json();
+            
+            if (data.success) {
+                displayPendingRefunds(data.refunds);
+                updateAdminStats(data.stats);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error loading pending refunds:', error);
+            showNotification('❌ Failed to load pending refunds', 'error');
+        }
+    }
+
+    function displayPendingRefunds(refunds) {
+        const container = document.getElementById('pending-refunds-list');
+        
+        if (!refunds || refunds.length === 0) {
+            container.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-check-circle"></i>
+                    <h4>No Pending Refunds</h4>
+                    <p>All refund requests have been processed</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = refunds.map(refund => `
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">${escapeHtml(refund.booking_reference)}</div>
+                    <div class="admin-card-status status-pending">Pending Refund</div>
+                </div>
+                
+                <div class="admin-card-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Passenger:</span>
+                        <span class="detail-value">${escapeHtml(refund.passenger_name)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Flight:</span>
+                        <span class="detail-value">${escapeHtml(refund.flight_route)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Amount:</span>
+                        <span class="detail-value">$${escapeHtml(refund.amount)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Request Date:</span>
+                        <span class="detail-value">${escapeHtml(refund.request_date)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">User Email:</span>
+                        <span class="detail-value">${escapeHtml(refund.user_email)}</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card-actions">
+                    <button class="admin-btn approve" onclick="processRefund('${escapeHtml(refund.booking_reference)}', 'approved')">
+                        <i class="fas fa-check"></i> Approve Refund
+                    </button>
+                    <button class="admin-btn reject" onclick="processRefund('${escapeHtml(refund.booking_reference)}', 'rejected')">
+                        <i class="fas fa-times"></i> Reject Refund
+                    </button>
+                    <button class="admin-btn view" onclick="viewBookingDetails('${escapeHtml(refund.booking_reference)}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Load all bookings for management
+    async function loadAllBookings() {
+        try {
+            const filter = document.getElementById('booking-filter').value;
+            const response = await fetch(`/flight/api/admin/all-bookings?filter=${filter}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                displayAllBookings(data.bookings);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error loading all bookings:', error);
+            showNotification('❌ Failed to load bookings', 'error');
+        }
+    }
+
+    function displayAllBookings(bookings) {
+        const container = document.getElementById('all-bookings-list');
+        
+        if (!bookings || bookings.length === 0) {
+            container.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-plane-slash"></i>
+                    <h4>No Bookings Found</h4>
+                    <p>No bookings match the current filter</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = bookings.map(booking => `
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">${escapeHtml(booking.booking_reference)}</div>
+                    <div class="admin-card-status status-${getStatusClass(booking.status)}">
+                        ${escapeHtml(booking.status)}
+                        ${booking.refund_requested ? ' (Refund)' : ''}
+                    </div>
+                </div>
+                
+                <div class="admin-card-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Passenger:</span>
+                        <span class="detail-value">${escapeHtml(booking.passenger_name)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Flight:</span>
+                        <span class="detail-value">${escapeHtml(booking.flight_route)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Amount:</span>
+                        <span class="detail-value">$${escapeHtml(booking.total_amount)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Booking Date:</span>
+                        <span class="detail-value">${escapeHtml(booking.booking_date)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">User:</span>
+                        <span class="detail-value">${escapeHtml(booking.user_email)}</span>
+                    </div>
+                </div>
+                
+                <div class="admin-card-actions">
+                    ${booking.status === 'Confirmed' ? `
+                        <button class="admin-btn cancel" onclick="cancelBooking('${escapeHtml(booking.booking_reference)}')">
+                            <i class="fas fa-ban"></i> Cancel Ticket
+                        </button>
+                    ` : ''}
+                    
+                    ${booking.refund_requested && booking.refund_status === 'Pending' ? `
+                        <button class="admin-btn approve" onclick="processRefund('${escapeHtml(booking.booking_reference)}', 'approved')">
+                            <i class="fas fa-check"></i> Approve Refund
+                        </button>
+                        <button class="admin-btn reject" onclick="processRefund('${escapeHtml(booking.booking_reference)}', 'rejected')">
+                            <i class="fas fa-times"></i> Reject Refund
+                        </button>
+                    ` : ''}
+                    
+                    <button class="admin-btn view" onclick="viewBookingDetails('${escapeHtml(booking.booking_reference)}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Load users for management
+    async function loadUsers() {
+        try {
+            const response = await fetch('/flight/api/admin/users');
+            const data = await response.json();
+            
+            if (data.success) {
+                displayUsers(data.users);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            showNotification('❌ Failed to load users', 'error');
+        }
+    }
+
+    function displayUsers(users) {
+        const container = document.getElementById('users-list');
+        
+        if (!users || users.length === 0) {
+            container.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-users-slash"></i>
+                    <h4>No Users Found</h4>
+                    <p>No users are registered in the system</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = users.map(user => `
+            <div class="user-card">
+                <div class="user-avatar">${escapeHtml(user.username[0].toUpperCase())}</div>
+                <div class="user-name">${escapeHtml(user.username)}</div>
+                <div class="user-email">${escapeHtml(user.email)}</div>
+                <div class="user-stats-small">
+                    <div class="user-stat">
+                        <span class="user-stat-number">${user.total_bookings || 0}</span>
+                        <span class="user-stat-label">Bookings</span>
+                    </div>
+                    <div class="user-stat">
+                        <span class="user-stat-number">${user.is_admin ? 'Admin' : 'User'}</span>
+                        <span class="user-stat-label">Role</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Process refund (approve/reject)
+    async function processRefund(bookingRef, action) {
+        const actionText = action === 'approved' ? 'approve' : 'reject';
+        
+        if (!await showConfirmation(
+            `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Refund`,
+            `Are you sure you want to ${actionText} the refund for booking ${bookingRef}?`,
+            'warning'
+        )) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/flight/api/admin/process-refund', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    booking_reference: bookingRef,
+                    action: action
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification(`✅ Refund ${action} successfully!`, 'success');
+                // Reload both tabs
+                setTimeout(() => {
+                    loadPendingRefunds();
+                    loadAllBookings();
+                }, 1000);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error processing refund:', error);
+            showNotification(`❌ Failed to process refund: ${error.message}`, 'error');
+        }
+    }
+
+    // Cancel booking
+    async function cancelBooking(bookingRef) {
+        if (!await showConfirmation(
+            'Cancel Booking',
+            `Are you sure you want to cancel booking ${bookingRef}? This action cannot be undone.`,
+            'warning'
+        )) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/flight/api/admin/cancel-booking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    booking_reference: bookingRef
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('✅ Booking cancelled successfully!', 'success');
+                setTimeout(() => {
+                    loadAllBookings();
+                }, 1000);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error cancelling booking:', error);
+            showNotification(`❌ Failed to cancel booking: ${error.message}`, 'error');
+        }
+    }
+
+    // View booking details
+    function viewBookingDetails(bookingRef) {
+        window.open(`/flight/api/download-invoice/${bookingRef}`, '_blank');
+    }
+
+    // Filter bookings
+    function filterBookings() {
+        loadAllBookings();
+    }
+
+    // Update admin statistics
+    function updateAdminStats(stats) {
+        if (stats) {
+            const pendingRefundsCount = document.getElementById('pending-refunds-count');
+            const allBookingsCount = document.getElementById('all-bookings-count');
+            
+            if (pendingRefundsCount) {
+                pendingRefundsCount.textContent = stats.pending_refunds || 0;
+            }
+            if (allBookingsCount) {
+                allBookingsCount.textContent = stats.total_bookings || 0;
+            }
+        }
+    }
+
+    // Add CSS animations for notifications
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .password-strength {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        .password-strength.weak { 
+            color: var(--accent); 
+        }
+        .password-strength.medium { 
+            color: var(--warning); 
+        }
+        .password-strength.strong { 
+            color: var(--success); 
+        }
+        .confirmation-modal .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .confirmation-modal .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        .modal-body {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-body i {
+            font-size: 2rem;
+            color: var(--warning);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>

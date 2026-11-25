@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+  <title>Destinations - FlyGo </title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <link rel="stylesheet" href="{{ url_for('static', filename= 'destinations.css') }}">
+  
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <nav>
+      <div class="logo">
+        <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('about') }}">About</a></li>
+        <li><a href="{{ url_for('destinations') }}" class="active">Destinations</a></li>
+        <li><a href="{{ url_for('new_post') }}">Travel Blog</a></li>
+
+        {% if current_user.is_admin %}
+        <li><a href="{{ url_for('post_blog') }}">Create Blog</a></li>
+        {% endif %}
+        
+        {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('profile') }}">Profile</a></li>
+        <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+        <li><a href="{{ url_for('register') }}">Login / Sign Up</a></li>
+        {% endif %}
+      </ul>
+      
+      <div class="hamburger">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Explore Amazing Destinations</h1>
+      <p>Discover breathtaking places around the world and book your next adventure with ease. From tropical paradises to bustling cities, your perfect getaway awaits.</p>
+    </div>
+
+    <!-- Flight Booking Section -->
+    <section class="flight-booking-section scroll-reveal">
+      <h2 class="section-title">Find Your Perfect Flight</h2>
+      
+      <form id="flightSearchForm">
+        <div class="search-grid">
+          <div class="form-group">
+            <label class="form-label">From</label>
+            <input type="text" class="form-input" name="origin" placeholder="City or Airport (e.g., JFK)" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">To</label>
+            <input type="text" class="form-input" name="destination" placeholder="City or Airport (e.g., CDG)" required>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 25px; position: relative;">
+  <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 600; color: #1c1e21; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+    <i class="fas fa-plane-departure" style="color: #1877f2; width: 20px; text-align: center;"></i>
+    Departure Date
+    <span style="color: #ff6b6b; margin-left: 4px;">*</span>
+  </label>
+  <div style="position: relative;">
+    <input 
+      type="date" 
+      class="form-input" 
+      name="departure_date" 
+      required
+      min="2024-01-01"
+      style="width: 100%; padding: 16px 20px 16px 50px; border: 2px solid #e4e6eb; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: #f8f9fa; font-weight: 500; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; cursor: pointer;"
+      onfocus="this.style.borderColor='#1877f2'; this.style.background='white'; this.style.boxShadow='0 0 0 3px rgba(24, 119, 242, 0.1)'; this.style.transform='translateY(-2px)'; document.getElementById('departure-icon').style.color='#1877f2'"
+      onblur="this.style.borderColor='#e4e6eb'; this.style.background='#f8f9fa'; this.style.boxShadow='none'; this.style.transform='translateY(0)'; document.getElementById('departure-icon').style.color='#65676b'"
+      onchange="validateDates()"
+    >
+    <i class="fas fa-calendar-day" id="departure-icon" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #65676b; transition: color 0.3s ease; pointer-events: none;"></i>
+  </div>
+  <small style="display: block; margin-top: 6px; color: #65676b; font-size: 0.85rem;">
+    <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+    Select your departure date
+  </small>
+</div>
+
+<div class="form-group" style="margin-bottom: 25px; position: relative;">
+  <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 600; color: #1c1e21; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+    <i class="fas fa-plane-arrival" style="color: #00a8ff; width: 20px; text-align: center;"></i>
+    Return Date 
+    <span style="color: #65676b; font-weight: 400; font-size: 0.9rem; margin-left: 4px;">(Optional)</span>
+  </label>
+  <div style="position: relative;">
+    <input 
+      type="date" 
+      class="form-input" 
+      name="return_date"
+      min="2024-01-01"
+      style="width: 100%; padding: 16px 20px 16px 50px; border: 2px solid #e4e6eb; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: #f8f9fa; font-weight: 500; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; cursor: pointer;"
+      onfocus="this.style.borderColor='#1877f2'; this.style.background='white'; this.style.boxShadow='0 0 0 3px rgba(24, 119, 242, 0.1)'; this.style.transform='translateY(-2px)'; document.getElementById('return-icon').style.color='#1877f2'"
+      onblur="this.style.borderColor='#e4e6eb'; this.style.background='#f8f9fa'; this.style.boxShadow='none'; this.style.transform='translateY(0)'; document.getElementById('return-icon').style.color='#65676b'"
+      onchange="validateDates()"
+    >
+    <i class="fas fa-calendar-check" id="return-icon" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #65676b; transition: color 0.3s ease; pointer-events: none;"></i>
+  </div>
+  <small style="display: block; margin-top: 6px; color: #65676b; font-size: 0.85rem;">
+    <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+    For round trips only
+  </small>
+</div>
+
+<script>
+function validateDates() {
+  const departureInput = document.querySelector('input[name="departure_date"]');
+  const returnInput = document.querySelector('input[name="return_date"]');
+  
+  if (departureInput.value && returnInput.value) {
+    const departureDate = new Date(departureInput.value);
+    const returnDate = new Date(returnInput.value);
+    
+    if (returnDate < departureDate) {
+      returnInput.style.borderColor = '#ff6b6b';
+      returnInput.style.boxShadow = '0 0 0 3px rgba(255, 107, 107, 0.1)';
+      
+      // Show error message
+      let errorMsg = returnInput.parentNode.querySelector('.date-error');
+      if (!errorMsg) {
+        errorMsg = document.createElement('small');
+        errorMsg.className = 'date-error';
+        errorMsg.style.cssText = 'display: block; margin-top: 6px; color: #ff6b6b; font-size: 0.85rem;';
+        errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right: 4px;"></i>Return date cannot be before departure';
+        returnInput.parentNode.appendChild(errorMsg);
+      }
+    } else {
+      returnInput.style.borderColor = '#4cd964';
+      returnInput.style.boxShadow = '0 0 0 3px rgba(76, 217, 100, 0.1)';
+      
+      // Remove error message
+      const errorMsg = returnInput.parentNode.querySelector('.date-error');
+      if (errorMsg) {
+        errorMsg.remove();
+      }
+    }
+  }
+}
+</script>
+
+          
+          <div class="form-group">
+            <label class="form-label">Adults</label>
+            <select class="form-select" name="adults">
+              <option value="1">1 Adult</option>
+              <option value="2">2 Adults</option>
+              <option value="3">3 Adults</option>
+              <option value="4">4 Adults</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Travel Class</label>
+            <select class="form-select" name="travel_class">
+              <option value="ECONOMY">Economy</option>
+              <option value="PREMIUM_ECONOMY">Premium Economy</option>
+              <option value="BUSINESS">Business</option>
+              <option value="FIRST">First Class</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-large btn-full" id="searchFlightsBtn">
+          <i class="fas fa-search"></i> Search Flights
+        </button>
+      </form>
+
+      <!-- Flight Results -->
+      <div id="flightResults" style="display: none; margin-top: 40px;">
+        <h3 class="section-title" style="font-size: 1.5rem;">Available Flights</h3>
+        
+        <div class="loading" id="loadingState">
+          <div class="loading-spinner"></div>
+          <p>Searching for the best flights...</p>
+        </div>
+        
+        <div class="flights-grid" id="flightsList" style="display: none;">
+          <!-- Flight cards will be populated by JavaScript -->
+        </div>
+        
+        <div class="error-message" id="errorMessage" style="display: none;">
+          <!-- Error messages will be shown here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Destinations Grid -->
+    <div class="destinations-grid">
+      <div class="destination-card scroll-reveal">
+        <img src="https://i.postimg.cc/P5jsG4Z0/paris.jpg" alt="Paris" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">Paris, France</h3>
+          <p class="destination-description">Experience the city of love with its iconic Eiffel Tower, charming streets, world-class cuisine, and rich artistic heritage.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $649
+          </div>
+          <button class="btn" onclick="quickBook('Paris', 'CDG')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+
+      <div class="destination-card scroll-reveal">
+        <img src="https://i.postimg.cc/tg6x19J8/tokio.webp" alt="Tokyo" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">Tokyo, Japan</h3>
+          <p class="destination-description">Immerse yourself in the perfect blend of traditional culture and futuristic technology in this vibrant metropolis.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $899
+          </div>
+          <button class="btn" onclick="quickBook('Tokyo', 'HND')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+
+      <div class="destination-card scroll-reveal">
+        <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Bali" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">Bali, Indonesia</h3>
+          <p class="destination-description">Relax in tropical paradise with stunning beaches, lush rice terraces, spiritual retreats, and vibrant culture.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $549
+          </div>
+          <button class="btn" onclick="quickBook('Bali', 'DPS')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+
+      <div class="destination-card scroll-reveal">
+        <img src="https://images.unsplash.com/photo-1534430480872-3498386e7856?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="New York" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">New York, USA</h3>
+          <p class="destination-description">Explore the city that never sleeps with its iconic skyline, Broadway shows, museums, and diverse neighborhoods.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $399
+          </div>
+          <button class="btn" onclick="quickBook('New York', 'JFK')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+
+      <div class="destination-card scroll-reveal">
+        <img src="https://i.postimg.cc/7P9TJsPw/rome.avif" alt="Rome" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">Rome, Italy</h3>
+          <p class="destination-description">Walk through history in the Eternal City with ancient ruins, Renaissance art, delicious pasta, and vibrant piazzas.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $599
+          </div>
+          <button class="btn" onclick="quickBook('Rome', 'FCO')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+
+      <div class="destination-card scroll-reveal">
+        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sydney" class="destination-image">
+        <div class="destination-content">
+          <h3 class="destination-name">Sydney, Australia</h3>
+          <p class="destination-description">Discover the harbor city with its iconic Opera House, beautiful beaches, vibrant culture, and stunning coastal walks.</p>
+          <div class="destination-price">
+            <i class="fas fa-tag"></i> From $799
+          </div>
+          <button class="btn" onclick="quickBook('Sydney', 'SYD')">
+            <i class="fas fa-plane"></i> Book Flight
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+   <!-- Booking Modal -->
+  <div id="bookingModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Complete Your Booking</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="booking-steps">
+          <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-label">Passenger Info</div>
+          </div>
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-label">Payment</div>
+          </div>
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-label">Confirmation</div>
+          </div>
+        </div>
+        
+        <!-- Step 1: Passenger Information -->
+        <div class="step-content active" id="step1">
+          <div class="booking-summary">
+            <h4>Flight Details</h4>
+            <div id="bookingFlightDetails">
+              <!-- Flight details will be populated here -->
+            </div>
+          </div>
+          
+          <h4>Passenger Information</h4>
+          <form id="passengerForm" class="passenger-form">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-input" name="first_name" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-input" name="last_name" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" name="email" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-input" name="phone" required>
+            </div>
+            
+            <div class="form-group form-row">
+              <label class="form-label">Passport Number</label>
+              <input type="text" class="form-input" name="passport" required>
+            </div>
+            
+            <div class="form-group form-row">
+              <label class="form-label">Special Requests</label>
+              <textarea class="form-input" name="special_requests" rows="3" placeholder="Any special requirements?"></textarea>
+            </div>
+          </form>
+          
+          <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button class="btn" onclick="nextStep(2)">Continue to Payment</button>
+          </div>
+        </div>
+        
+        <!-- Step 2: Payment -->
+        <div class="step-content" id="step2">
+          <h4>Payment Method</h4>
+          <div class="payment-methods">
+            <div class="payment-method" onclick="selectPayment('credit')">
+              <i class="fas fa-credit-card"></i>
+              <div>Credit Card</div>
+            </div>
+            <div class="payment-method" onclick="selectPayment('paypal')">
+              <i class="fab fa-paypal"></i>
+              <div>PayPal</div>
+            </div>
+            <div class="payment-method" onclick="selectPayment('google')">
+              <i class="fab fa-google-pay"></i>
+              <div>Google Pay</div>
+            </div>
+          </div>
+          
+          <div class="payment-section" id="creditCardForm" style="display: none;">
+            <div class="passenger-form">
+              <div class="form-group form-row">
+                <label class="form-label">Card Number</label>
+                <input type="text" class="form-input" name="card_number" placeholder="1234 5678 9012 3456">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Expiry Date</label>
+                <input type="text" class="form-input" name="expiry" placeholder="MM/YY">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">CVV</label>
+                <input type="text" class="form-input" name="cvv" placeholder="123">
+              </div>
+              
+              <div class="form-group form-row">
+                <label class="form-label">Cardholder Name</label>
+                <input type="text" class="form-input" name="cardholder" placeholder="John Doe">
+              </div>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+            <button class="btn" onclick="prevStep(1)">Back</button>
+            <button class="btn" onclick="processPayment()">Complete Booking</button>
+          </div>
+        </div>
+        
+        <!-- Step 3: Confirmation -->
+        <div class="step-content" id="step3">
+          <div class="confirmation-message">
+            <div class="confirmation-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Booking Confirmed!</h3>
+            <p>Your flight has been successfully booked. A confirmation email has been sent to your email address.</p>
+            <div class="booking-summary" id="finalBookingDetails">
+              <!-- Final booking details will be shown here -->
+            </div>
+            <button class="btn" onclick="closeModal()" style="margin-top: 20px;">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+// Header scroll effect
+window.addEventListener("scroll", function() {
+    const header = document.querySelector("header");
+    if (window.scrollY > 50) {
+        header.classList.add("scrolled");
+    } else {
+        header.classList.remove("scrolled");
+    }
+});
+
+// New variables for booking flow
+let selectedFlight = null;
+let currentStep = 1;
+let selectedPaymentMethod = null;
+
+// Mobile menu functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function() {
+            this.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+    }
+
+    // Set default date (30 days from now)
+    const departureInput = document.querySelector('input[name="departure_date"]');
+    const returnInput = document.querySelector('input[name="return_date"]');
+    
+    const now = new Date();
+    now.setDate(now.getDate() + 30);
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    departureInput.value = `${yyyy}-${mm}-${dd}`;
+
+    // Set min date to today
+    const today = new Date();
+    const tyyyy = today.getFullYear();
+    const tmm = String(today.getMonth() + 1).padStart(2, "0");
+    const tdd = String(today.getDate()).padStart(2, "0");
+    departureInput.min = `${tyyyy}-${tmm}-${tdd}`;
+    returnInput.min = `${tyyyy}-${tmm}-${tdd}`;
+
+    // Form submission
+    document.getElementById('flightSearchForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const searchData = {
+            origin: formData.get('origin'),
+            destination: formData.get('destination'),
+            departure_date: formData.get('departure_date'),
+            return_date: formData.get('return_date'),
+            adults: formData.get('adults'),
+            travel_class: formData.get('travel_class')
+        };
+
+        // Show results section and loading state
+        document.getElementById('flightResults').style.display = 'block';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('flightsList').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+
+        try {
+            const response = await fetch('/flight/api/search-flights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(searchData)
+            });
+
+            const data = await response.json();
+
+            document.getElementById('loadingState').style.display = 'none';
+
+            if (data.success) {
+                displayFlights(data.flights);
+            } else {
+                showError(data.error || 'Failed to search flights');
+            }
+        } catch (error) {
+            document.getElementById('loadingState').style.display = 'none';
+            showError('Network error. Please try again.');
+        }
+    });
+
+    // Scroll reveal animations
+    const scrollElements = document.querySelectorAll('.scroll-reveal');
+    
+    const elementInView = (el, dividend = 1) => {
+        const elementTop = el.getBoundingClientRect().top;
+        return (
+            elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend
+        );
+    };
+
+    const displayScrollElement = (element) => {
+        element.classList.add('revealed');
+    };
+
+    const hideScrollElement = (element) => {
+        element.classList.remove('revealed');
+    };
+
+    const handleScrollAnimation = () => {
+        scrollElements.forEach((el) => {
+            if (elementInView(el, 1.2)) {
+                displayScrollElement(el);
+            } else {
+                hideScrollElement(el);
+            }
+        });
+    };
+
+    window.addEventListener('scroll', () => {
+        handleScrollAnimation();
+    });
+
+    // Initial check
+    handleScrollAnimation();
+
+    // Add hover effects to destination cards
+    const cards = document.querySelectorAll('.destination-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Add event listener for close modal button
+    document.querySelector('.close-modal').addEventListener('click', closeModal);
+});
+
+function displayFlights(flights) {
+    // Store flights for later reference
+    window.currentFlights = flights;
+    
+    const flightsList = document.getElementById('flightsList');
+    flightsList.innerHTML = '';
+
+    if (!flights || flights.length === 0) {
+        showError('No flights found for your search criteria. Please try different dates or destinations.');
+        return;
+    }
+
+    flights.forEach(flight => {
+        const flightCard = document.createElement('div');
+        flightCard.className = 'flight-card scroll-reveal';
+        flightCard.innerHTML = `
+            <div class="flight-header">
+                <div class="flight-route">${flight.origin} → ${flight.destination}</div>
+                <div class="flight-price">$${flight.price}</div>
+            </div>
+            <div class="flight-details">
+                <div class="flight-info">
+                    <div class="flight-info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${flight.duration}</span>
+                    </div>
+                    <div class="flight-info-item">
+                        <i class="fas fa-plane-departure"></i>
+                        <span>${flight.departure_time}</span>
+                    </div>
+                    <div class="flight-info-item">
+                        <i class="fas fa-plane-arrival"></i>
+                        <span>${flight.arrival_time}</span>
+                    </div>
+                </div>
+                <div class="flight-airline">${flight.airline}</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <div class="flight-info-item">
+                    <i class="fas fa-suitcase"></i>
+                    <span>${flight.stops} stop(s)</span>
+                </div>
+            </div>
+            <button class="btn btn-full" style="margin-top: 20px;" onclick="selectFlight('${flight.id}')">
+                <i class="fas fa-shopping-cart"></i> Select Flight
+            </button>
+        `;
+
+        flightsList.appendChild(flightCard);
+    });
+
+    flightsList.style.display = 'grid';
+    
+    // Trigger scroll reveal for flight cards
+    setTimeout(() => {
+        document.querySelectorAll('#flightsList .scroll-reveal').forEach(el => {
+            el.classList.add('revealed');
+        });
+    }, 100);
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+// Quick book function for destination cards
+function quickBook(destination, airportCode) {
+    document.querySelector('input[name="destination"]').value = airportCode;
+    document.querySelector('input[name="origin"]').focus();
+    
+    // Smooth scroll to flight booking section
+    document.querySelector('.flight-booking-section').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+    
+    // Show a confirmation message
+    setTimeout(() => {
+        alert(`Ready to book your flight to ${destination}! Please fill in your departure details above.`);
+    }, 500);
+}
+
+// Enhanced selectFlight function
+function selectFlight(flightId) {
+    // Find the selected flight from the displayed flights
+    const flight = window.currentFlights.find(f => f.id === flightId);
+    if (!flight) return;
+    
+    selectedFlight = flight;
+    
+    // Update UI to show selected flight
+    document.querySelectorAll('.flight-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    event.target.closest('.flight-card').classList.add('selected');
+    
+    // Show booking modal
+    openBookingModal();
+}
+
+// Open booking modal
+function openBookingModal() {
+    if (!selectedFlight) return;
+    
+    // Populate flight details in modal
+    document.getElementById('bookingFlightDetails').innerHTML = `
+        <div class="summary-item">
+            <span>Route:</span>
+            <span>${selectedFlight.origin} → ${selectedFlight.destination}</span>
+        </div>
+        <div class="summary-item">
+            <span>Departure:</span>
+            <span>${selectedFlight.departure_time}</span>
+        </div>
+        <div class="summary-item">
+            <span>Airline:</span>
+            <span>${selectedFlight.airline}</span>
+        </div>
+        <div class="summary-item">
+            <span>Duration:</span>
+            <span>${selectedFlight.duration}</span>
+        </div>
+        <div class="summary-item summary-total">
+            <span>Total:</span>
+            <span>$${selectedFlight.price}</span>
+        </div>
+    `;
+    
+    // Reset form and steps
+    document.getElementById('passengerForm').reset();
+    resetSteps();
+    
+    // Show modal
+    document.getElementById('bookingModal').style.display = 'block';
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById('bookingModal').style.display = 'none';
+    selectedFlight = null;
+    currentStep = 1;
+}
+
+// Step navigation
+function nextStep(step) {
+    // Validate current step before proceeding
+    if (currentStep === 1 && !validatePassengerInfo()) {
+        alert('Please fill in all required passenger information.');
+        return;
+    }
+    
+    document.querySelector(`#step${currentStep}`).classList.remove('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+    
+    currentStep = step;
+    
+    document.querySelector(`#step${currentStep}`).classList.add('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+}
+
+function prevStep(step) {
+    document.querySelector(`#step${currentStep}`).classList.remove('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+    
+    currentStep = step;
+    
+    document.querySelector(`#step${currentStep}`).classList.add('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+}
+
+function resetSteps() {
+    currentStep = 1;
+    document.querySelectorAll('.step-content').forEach(step => {
+        step.classList.remove('active');
+    });
+    document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    document.getElementById('step1').classList.add('active');
+    document.querySelector('.step[data-step="1"]').classList.add('active');
+}
+
+// Payment method selection
+function selectPayment(method) {
+    selectedPaymentMethod = method;
+    
+    // Update UI
+    document.querySelectorAll('.payment-method').forEach(pm => {
+        pm.classList.remove('selected');
+    });
+    event.target.closest('.payment-method').classList.add('selected');
+    
+    // Show appropriate payment form
+    document.getElementById('creditCardForm').style.display = 
+        method === 'credit' ? 'block' : 'none';
+}
+
+// Validate passenger information
+function validatePassengerInfo() {
+    const form = document.getElementById('passengerForm');
+    const required = ['first_name', 'last_name', 'email', 'phone', 'passport'];
+    
+    for (let field of required) {
+        if (!form.elements[field].value.trim()) {
+            return false;
+        }
+    }
+    
+    // Basic email validation
+    const email = form.elements['email'].value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Fixed processPayment function
+async function processPayment() {
+    if (!selectedPaymentMethod) {
+        alert('Please select a payment method.');
+        return;
+    }
+    
+    // Get passenger information
+    const formData = new FormData(document.getElementById('passengerForm'));
+    const passengerInfo = {
+        first_name: formData.get('first_name'),
+        last_name: formData.get('last_name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        passport: formData.get('passport'),
+        special_requests: formData.get('special_requests')
+    };
+    
+    // Show processing state
+    const payButton = event.target;
+    const originalText = payButton.innerHTML;
+    payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    payButton.disabled = true;
+    
+    try {
+        // Debug logging
+        console.log('Sending booking request:', {
+            flight_data: selectedFlight,
+            passenger_info: passengerInfo,
+            payment_method: selectedPaymentMethod
+        });
+
+        // Send booking request to backend - FIXED: send flight_data instead of flight_id
+        const response = await fetch('/flight/api/book-flight', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                flight_data: selectedFlight, // This is what the backend expects
+                passenger_info: passengerInfo,
+                payment_method: selectedPaymentMethod
+            })
+        });
+        
+        const data = await response.json();
+        
+        console.log('Booking response:', data);
+        
+        if (data.success) {
+            // Show confirmation with booking details
+            document.getElementById('finalBookingDetails').innerHTML = `
+                <div class="summary-item">
+                    <span>Booking Reference:</span>
+                    <span>${data.booking_reference}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Ticket Number:</span>
+                    <span>${data.ticket_number}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Passenger:</span>
+                    <span>${passengerInfo.first_name} ${passengerInfo.last_name}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Flight:</span>
+                    <span>${selectedFlight.origin} → ${selectedFlight.destination}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Departure:</span>
+                    <span>${selectedFlight.departure_time}</span>
+                </div>
+                <div class="summary-item summary-total">
+                    <span>Total Paid:</span>
+                    <span>$${selectedFlight.price}</span>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn" onclick="downloadInvoice('${data.booking_reference}')">
+                        <i class="fas fa-download"></i> Download Invoice
+                    </button>
+                </div>
+            `;
+            
+            // Move to confirmation step
+            nextStep(3);
+            
+            // Update booking history
+            updateBookingHistory();
+        } else {
+            alert('Payment failed: ' + data.error);
+            payButton.innerHTML = originalText;
+            payButton.disabled = false;
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        alert('Payment processing failed. Please try again.');
+        payButton.innerHTML = originalText;
+        payButton.disabled = false;
+    }
+}
+
+// Download invoice function
+async function downloadInvoice(bookingRef) {
+    try {
+        const response = await fetch(`/flight/api/download-invoice/${bookingRef}`);
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `invoice_${bookingRef}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Failed to download invoice');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('Failed to download invoice');
+    }
+}
+
+// Update booking history
+async function updateBookingHistory() {
+    try {
+        const response = await fetch('/flight/api/booking-history');
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('Booking history updated:', data.bookings);
+            // You can display this in a separate section on the page
+            // For now, we'll just log it to console
+        }
+    } catch (error) {
+        console.error('Error fetching booking history:', error);
+    }
+}
+
+// Request refund function
+async function requestRefund(bookingRef) {
+    if (!confirm('Are you sure you want to request a refund for this booking?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/flight/api/request-refund/${bookingRef}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Refund request submitted successfully!');
+            updateBookingHistory();
+        } else {
+            alert('Refund request failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Refund request error:', error);
+        alert('Failed to submit refund request');
+    }
+}
+
+// Generate a random booking reference
+function generateBookingReference() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('bookingModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+
+// Close modal with escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
+  </script>
+</body>
+</html>

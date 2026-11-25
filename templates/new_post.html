@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" href="{{ url_for('static', filename= '') }}" type="image/png">
+    <title>Travel Blog - FlyGo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'new_post.css') }}">
+    <style>
+        
+    </style>
+</head>
+<body>
+   
+    
+
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('about')}}">About</a></li>
+                <li><a href="{{ url_for('destinations')}}">Destinations</a></li>
+                <li><a href="{{ url_for('new_post') }}" class="active">Travel Blog</a></li>
+                {% if current_user.is_admin %}
+                <li><a href="{{ url_for('post_blog') }}">Create Blog</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('register') }}">LogIn/SignUp</a></li>
+                {% endif %}
+            </ul>
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Blog Hero Section -->
+    <section class="blog-hero">
+        <div class="blog-hero-content">
+            <h1 class="blog-hero-title">Travel Stories & Adventures</h1>
+            <p class="blog-hero-subtitle">Discover inspiring travel experiences and share your own journey with our community</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="post-list" id="main-content">
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post-content" data-aos="fade-up">
+                <div class="post-header">
+                    <div class="author-avatar">
+                        {{ post.author.username[0]|upper }}
+                    </div>
+                    <div class="post-meta">
+                        <div class="post-author">{{ post.author.username }}</div>
+                    </div>
+                </div>
+                
+                <h2 class="post-title">{{ post.title }}</h2>
+                <p class="post-describe">{{ post.content[:300] }}{% if post.content|length > 300 %}...{% endif %}</p>
+                
+                {% if post.image_path %}
+                <img class="post-image" src="/static/{{ post.image_path }}" alt="Post Image" loading="lazy">
+                {% endif %}
+                
+                <div class="post-actions">
+                    
+                    <div class="action-btn share-btn">
+                        <i class="far fa-share-square"></i> Share
+                    </div>
+                    
+                </div>
+                
+                <div class="btn-in-blog-flex">
+                    <a class="in-blog-page-btn-edit-read" href="{{ url_for('readmore', post_id=post.id) }}">
+                        <i class="far fa-eye"></i> Read More
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a class="in-blog-page-btn-edit-read" href="{{ url_for('edit_post', post_id=post.id) }}">
+                        <i class="far fa-edit"></i> Edit Post
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-posts">
+                <h3>No Travel Stories Yet</h3>
+                <p>Be the first to share your amazing travel experiences with our community!</p>
+                {% if current_user.is_admin %}
+                <a class="in-blog-page-btn-edit-read" href="{{ url_for('post_blog') }}">
+                    <i class="fas fa-plus"></i> Create Your First Post
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+    
+    <div class="div-top">
+        <a href="#" class="top">
+            <i class="fas fa-arrow-up"></i> Back to Top
+        </a>
+    </div>
+
+    <!-- Chatbot -->
+    <div class="chatbot-container">
+        <button class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <h3>Travel Assistant</h3>
+                <p>How can I help you today?</p>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot">
+                    <div class="avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="content">
+                        Hello! I'm your travel assistant. I can help you with travel tips, destination recommendations, and more!
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <form id="chatbotForm">
+                    <input type="text" id="chatbotInput" placeholder="Ask about travel..." autocomplete="off">
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Loading screen
+        window.addEventListener('load', function() {
+            const loadingPage = document.getElementById('loading-page');
+            setTimeout(() => {
+                loadingPage.style.opacity = '0';
+                setTimeout(() => {
+                    loadingPage.style.display = 'none';
+                }, 500);
+            }, 1500);
+        });
+
+        // Chatbot functionality
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotWindow = document.getElementById('chatbotWindow');
+        const chatbotForm = document.getElementById('chatbotForm');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+
+        chatbotToggle.addEventListener('click', () => {
+            chatbotWindow.style.display = chatbotWindow.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Chatbot responses
+        const responses = {
+            'hello': 'Hello! How can I assist you with your travel plans today?',
+            'hi': 'Hi there! Ready to explore amazing destinations?',
+            'help': 'I can help you with: destination recommendations, travel tips, packing advice, and general travel information.',
+            'destinations': 'Popular destinations: Paris, Tokyo, Bali, New York, Rome, Sydney. Which one interests you?',
+            'flight': 'For flight bookings, visit our Destinations page and use the flight search feature!',
+            'hotel': 'I can recommend hotels based on your destination. Where are you planning to stay?',
+            'packing': 'Essential packing tips: pack light, bring versatile clothing, don\'t forget chargers and travel documents!',
+            'weather': 'Check weather forecasts for your destination before packing. Would you like to know about a specific place?',
+            'budget': 'Travel budgeting tips: book in advance, travel offseason, use public transport, and eat local food!',
+            'visa': 'Visa requirements vary by destination and nationality. Check the embassy website for your specific case.',
+            'thanks': 'You\'re welcome! Happy travels! 🎉',
+            'thank you': 'You\'re welcome! Safe journeys! ✈️'
+        };
+
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            if (isUser) {
+                messageDiv.innerHTML = `
+                    <div class="content">${message}</div>
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="content">${message}</div>
+                `;
+            }
+            
+            chatbotMessages.appendChild(messageDiv);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        function getBotResponse(message) {
+            message = message.toLowerCase();
+            
+            for (const [key, response] of Object.entries(responses)) {
+                if (message.includes(key)) {
+                    return response;
+                }
+            }
+            
+            return "I'm not sure about that. I can help with destination recommendations, travel tips, packing advice, and general travel information. Try asking about specific destinations or travel topics!";
+        }
+
+        chatbotForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatbotInput.value.trim();
+            
+            if (message) {
+                addMessage(message, true);
+                chatbotInput.value = '';
+                
+                // Simulate typing delay
+                setTimeout(() => {
+                    const response = getBotResponse(message);
+                    addMessage(response);
+                }, 1000);
+            }
+        });
+
+        // Interactive buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Like button functionality
+            const likeButtons = document.querySelectorAll('.like-btn');
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#e41e3f';
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '';
+                    }
+                });
+            });
+
+            // Share button functionality
+            const shareButtons = document.querySelectorAll('.share-btn');
+            shareButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const postTitle = this.closest('.post-content').querySelector('.post-title').textContent;
+                    const postUrl = this.closest('.post-content').querySelector('.in-blog-page-btn-edit-read').href;
+
+                    if (navigator.share) {
+                        navigator.share({
+                            title: postTitle,
+                            text: 'Check out this amazing travel story!',
+                            url: postUrl
+                        });
+                    } else {
+                        navigator.clipboard.writeText(postUrl).then(() => {
+                            alert('Link copied to clipboard!');
+                        });
+                    }
+                });
+            });
+
+            // Back to top smooth scroll
+            document.querySelector('.top').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Add some interactive hover effects
+        document.querySelectorAll('.post-content').forEach(post => {
+            post.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+            
+            post.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

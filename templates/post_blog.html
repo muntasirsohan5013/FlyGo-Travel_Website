@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Post - FlyGo</title>
+    <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='post_blog.css') }}">
+    <style>
+        
+    </style>
+</head>
+<body>
+   
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('about')}}">About</a></li>
+                <li><a href="{{ url_for('destinations')}}">Destinations</a></li>
+                <li><a href="{{ url_for('new_post') }}">Travel Blog</a></li>
+                {% if current_user.is_admin %}
+                <li><a href="{{ url_for('post_blog') }}" class="active">Create Blog</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('register') }}">LogIn/SignUp</a></li>
+                {% endif %}
+            </ul>
+            
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="create-blog">
+        <h2 class="Blog_title">Share Your Journey <span class="logo-highlight">With The World</span></h2>
+
+        <form action="/post_blog" method="POST" class="post-blog-form" enctype="multipart/form-data">
+
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label" for="title">
+                    <i class="fas fa-heading"></i> Post Title
+                </label>
+                <input type="text" name="title" id="title" class="form-input"
+                       placeholder="Give your travel story a descriptive title..." required>
+            </div>
+
+            <!-- Content -->
+            <div class="form-group">
+                <label class="form-label" for="content">
+                    <i class="fas fa-edit"></i> Your Travel Story
+                </label>
+                <textarea id="content" class="post-write-aria" 
+                          placeholder="Share your amazing travel experiences, stories, tips, and memories with our community. Describe the places you visited, the people you met, and the adventures you had..." 
+                          name="content" required></textarea>
+                <div class="char-counter" id="charCounter">0 characters</div>
+            </div>
+
+            <!-- Image Upload Section -->
+            <div class="form-group">
+                <label class="file-tag-img-in-creat">
+                    <i class="fas fa-image"></i> Add a Cover Image
+                </label>
+                
+                <div class="profile-picture" onclick="document.getElementById('img_file').click()">
+                    <h1 class="upload-icon">
+                        <i class="fa fa-plus fa-2x"></i>
+                    </h1>
+                    
+                    <!-- File Input - DO NOT REMOVE -->
+                    <input class="file-uploader"
+                           type="file"
+                           accept="image/*"
+                           id="img_file"
+                           name="img_file"
+                           onchange="upload()"/>
+                    
+                    <p><strong>Click to upload a stunning cover image</strong></p>
+                    <p class="small-text">Recommended: 1200x630 pixels for optimal display</p>
+                    <p class="small-text">Supports: JPG, PNG, WebP (Max 5MB)</p>
+                </div>
+            </div>
+
+            <button class="btn-for-post-creat" type="submit">
+                <i class="fas fa-paper-plane"></i> Publish Your Travel Story
+            </button>
+        </form>
+    </main>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector("header");
+            if (window.scrollY > 50) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        });
+
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                });
+
+                // Close mobile menu when clicking on a link
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        navLinks.classList.remove('active');
+                    });
+                });
+            }
+
+            // Character counter functionality
+            const contentTextarea = document.getElementById('content');
+            const charCounter = document.getElementById('charCounter');
+
+            function updateCharCount() {
+                const count = contentTextarea.value.length;
+                charCounter.textContent = `${count.toLocaleString()} characters`;
+                
+                if (count > 5000) {
+                    charCounter.classList.add('warning');
+                } else {
+                    charCounter.classList.remove('warning');
+                }
+            }
+
+            contentTextarea.addEventListener('input', updateCharCount);
+            updateCharCount(); // Initialize
+
+            // Form submission handling
+            const form = document.querySelector('.post-blog-form');
+            form.addEventListener('submit', function(e) {
+                // Debug form data
+                const formData = new FormData(this);
+                console.log('Form data entries:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key + ': ', value);
+                }
+                
+                const submitBtn = this.querySelector('.btn-for-post-creat');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+                submitBtn.disabled = true;
+                
+                // Re-enable after 5 seconds (in case of error)
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 5000);
+            });
+
+            // Auto-save functionality
+            let autoSaveTimer;
+            function autoSave() {
+                const title = document.getElementById('title').value;
+                const content = document.getElementById('content').value;
+                
+                if (title || content) {
+                    console.log('Auto-saving draft...', { title, content });
+                }
+            }
+
+            // Set up auto-save on input
+            document.getElementById('title').addEventListener('input', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(autoSave, 3000);
+            });
+
+            document.getElementById('content').addEventListener('input', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(autoSave, 3000);
+            });
+        });
+
+        // Upload function - KEEP THIS EXACTLY AS IS
+        function upload() {
+            const fileInput = document.getElementById('img_file');
+            const container = document.querySelector('.profile-picture');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            // Validate image
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024;
+            
+            if (!validTypes.includes(file.type)) {
+                alert('Please select a valid image file (JPG, PNG, or WebP).');
+                fileInput.value = '';
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                alert('Image size must be less than 5MB.');
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                // Hide upload icon and text
+                const uploadIcon = container.querySelector('.upload-icon');
+                const paragraphs = container.querySelectorAll('p');
+                
+                if (uploadIcon) uploadIcon.style.display = "none";
+                paragraphs.forEach(p => p.style.display = "none");
+
+                // Remove existing preview if any
+                const existingPreview = container.querySelector('.image-preview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+
+                // Create and insert image preview
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'image-preview';
+                img.alt = 'Selected cover image';
+                
+                // Insert at the beginning of the container
+                container.insertBefore(img, container.firstChild);
+
+                // Add change text
+                const changeText = document.createElement('p');
+                changeText.innerHTML = '<strong>Image selected:</strong> ' + file.name;
+                changeText.style.marginTop = '10px';
+                changeText.style.color = 'var(--primary)';
+                container.appendChild(changeText);
+
+                const clickText = document.createElement('p');
+                clickText.textContent = 'Click to change image';
+                clickText.className = 'small-text';
+                container.appendChild(clickText);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>

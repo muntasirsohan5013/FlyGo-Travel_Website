@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" class="page-about">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" href="{{ url_for('static', filename= 'img/icon.png') }}" type="image/png">
+    <title>About Us - FlyGo </title>
+     <link rel="stylesheet" href="{{ url_for('static', filename= 'about.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
+    
+</head>
+<body>
+   
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}"><span>Fly</span><span class="logo-highlight">Go</span></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('about') }}" class="active">About</a></li>
+                <li><a href="{{ url_for('destinations') }}">Destinations</a></li>
+                <li><a href="{{ url_for('new_post') }}">Travel Blog</a></li>
+
+                {% if current_user.is_admin %}
+                <li><a href="{{ url_for('post_blog') }}">Admin Panel</a></li>
+                {% endif %}
+                
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a class="logout-btn" href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                <li><a href="{{ url_for('register') }}">Login / Sign Up</a></li>
+                {% endif %}
+            </ul>
+            
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Discover the World with Us</h1>
+                <p class="hero-subtitle">Your journey to unforgettable experiences starts here. We're passionate about connecting travelers with the world's most amazing destinations.</p>
+                <p class="hero-subtitle">We specialize in: <span class="typed-text"></span></p>
+            </div>
+        </section>
+
+        <!-- Animation Section -->
+        <section class="animation-section fade-in">
+            <div class="animation-container">
+                <h2 class="animation-title">Our Journey in Motion</h2>
+                <p class="animation-subtitle">Watch our story unfold through this animated journey that captures the essence of travel and exploration.</p>
+                <dotlottie-wc src="https://lottie.host/21568b77-b41c-409a-88c1-29c9d4a48b89/HYMCi8fD9R.lottie" style="width: 800px;height: 300px;" autoplay loop></dotlottie-wc>
+            </div>
+        </section>
+
+        <!-- About Content -->
+        <section class="about-content">
+            <div class="about-grid">
+                <div class="about-card scroll-reveal">
+                    <div class="card-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h3 class="card-title">Global Destinations</h3>
+                    <p class="card-text">Explore thousands of destinations worldwide with our curated travel guides and expert recommendations. From bustling cities to serene beaches, we've got you covered.</p>
+                </div>
+                
+                <div class="about-card scroll-reveal">
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="card-title">Community Driven</h3>
+                    <p class="card-text">Join our vibrant community of travelers sharing experiences, tips, and stories from around the globe. Connect with fellow adventurers and share your journey.</p>
+                </div>
+                
+                <div class="about-card scroll-reveal">
+                    <div class="card-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="card-title">Trusted Platform</h3>
+                    <p class="card-text">Your safety and satisfaction are our top priorities. We verify all content and maintain high standards to ensure you have the best travel experience possible.</p>
+                </div>
+
+               <div class="about-card scroll-reveal">
+    <div class="card-icon">
+        <i class="fas fa-plane-departure"></i>
+    </div>
+    <h3 class="card-title">Smart Booking</h3>
+    <p class="card-text">
+        Find the best deals instantly with our intelligent search system that compares thousands of flights in seconds. We make booking simple, fast, and transparent—no hidden fees, ever.
+    </p>
+</div>
+
+            </div>
+
+            <!-- Mission Section -->
+            <div class="mission-section scroll-reveal">
+                <h2 class="mission-title">Our Mission</h2>
+                <p class="mission-text">
+                    At FlyGo, we believe that travel has the power to transform lives, broaden perspectives, and create lasting memories. 
+                    Our mission is to make world exploration accessible to everyone by providing reliable information, inspiring content, 
+                    and a platform where travelers can connect and share their experiences. We're committed to helping you discover hidden gems, 
+                    experience diverse cultures, and create stories worth telling for years to come.
+                </p>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="stats-section scroll-reveal">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">50K+</div>
+                        <div class="stat-label">Happy Travelers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">120+</div>
+                        <div class="stat-label">Countries Covered</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5K+</div>
+                        <div class="stat-label">Travel Stories</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support Available</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <section class="contact-section scroll-reveal">
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <h2>Get in Touch</h2>
+                        <p>Have questions about your next adventure? Want to share your travel story? We'd love to hear from you!</p>
+                        <p>Our team is available 24/7 to help plan your perfect journey and answer any questions you might have about our services.</p>
+                        
+                        <div class="social-links">
+                            <a href="#" class="social-link">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form">
+                        <h3 class="form-title">Send us a Message</h3>
+                        <p class="form-subtitle">We'll get back to you within 24 hours with personalized assistance for your travel needs.</p>
+                        
+                        <form method="POST" action="{{ url_for('submit_message') }}">
+                            <div class="form-group">
+                                <input type="text" name="FirstName" class="form-input" placeholder="First Name" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="Last Name" class="form-input" placeholder="Last Name" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" name="Email" class="form-input" placeholder="Email Address" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" name="PhoneNumber" class="form-input" placeholder="Phone Number">
+                            </div>
+                            <div class="form-group">
+                                <textarea name="message" class="form-input" placeholder="Tell us about your travel plans or questions..." rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </form>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="flashes" style="margin-top: 20px;">
+                                    {% for category, message in messages %}
+                                        <div class="flash-{{ category }}" style="padding: 12px; border-radius: 8px; background: var(--success); color: white; margin-bottom: 10px; text-align: center;">
+                                            <i class="fas fa-check-circle"></i> {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3><i class="fas fa-user-tie"></i> Developer</h3>
+                <ul class="footer-links">
+                    <li><i class="fas fa-user"></i> Mahfuz Muntasir Sohan</li>
+                    <li><i class="fas fa-graduation-cap"></i> Nanjing Tech University</li>
+                    <li><i class="fas fa-laptop-code"></i> Computer Science and Technology</li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h3><i class="fas fa-share-alt"></i> Social Contact</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+                    <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+                    <li><a href="#"><i class="fab fa-github"></i> GitHub</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h3><i class="fas fa-envelope"></i> Contact</h3>
+                <ul class="footer-links">
+                    <li>
+                        <a href="mailto:muntasirsohan0@gmail.com">
+                            <i class="fas fa-envelope"></i> muntasirsohan0@gmail.com
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>Copyright © 2024 <a href="#">@Mahfuz Muntasir Sohan</a>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector("header");
+            if (window.scrollY > 50) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        });
+
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                });
+
+                // Close mobile menu when clicking on a link
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        navLinks.classList.remove('active');
+                    });
+                });
+            }
+
+            // Typed.js initialization
+            var typed = new Typed('.typed-text', {
+                strings: [
+                    'Adventure Travel',
+                    'Cultural Experiences', 
+                    'Luxury Getaways',
+                    'Budget Trips',
+                    'Family Vacations',
+                    'Solo Adventures'
+                ],
+                typeSpeed: 50,
+                backSpeed: 30,
+                backDelay: 2000,
+                startDelay: 500,
+                loop: true
+            });
+
+            // Scroll reveal animations
+            const scrollElements = document.querySelectorAll('.scroll-reveal');
+            
+            const elementInView = (el, dividend = 1) => {
+                const elementTop = el.getBoundingClientRect().top;
+                return (
+                    elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend
+                );
+            };
+
+            const displayScrollElement = (element) => {
+                element.classList.add('revealed');
+            };
+
+            const hideScrollElement = (element) => {
+                element.classList.remove('revealed');
+            };
+
+            const handleScrollAnimation = () => {
+                scrollElements.forEach((el) => {
+                    if (elementInView(el, 1.2)) {
+                        displayScrollElement(el);
+                    } else {
+                        hideScrollElement(el);
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', () => {
+                handleScrollAnimation();
+            });
+
+            // Initial check
+            handleScrollAnimation();
+        });
+
+        // Add hover effects to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.about-card, .stat-item');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
